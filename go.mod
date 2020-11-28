@@ -1,4 +1,4 @@
-module github.com/auth0-blog/go-vr-auth
+module github.com/jimareed/slideshow-data
 
 go 1.14
 
