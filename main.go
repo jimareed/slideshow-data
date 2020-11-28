@@ -30,17 +30,17 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
-/* Apps type */
-type App struct {
-	Id          int
+/* Slideshow type */
+type Slideshow struct {
+	Id          string
 	Name        string
 	Description string
 }
 
-var apps = []App{
-	App{Id: 1, Name: "Overview", Description: "Brief overview"},
-	App{Id: 2, Name: "Instructions", Description: "Steps to use"},
-	App{Id: 3, Name: "Emotional Intelligence", Description: "Sample slideshow"},
+var slideshows = []Slideshow{
+	Slideshow{Id: "main", Name: "Overview", Description: "Brief overview"},
+	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use"},
+	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow"},
 }
 
 func main() {
@@ -74,7 +74,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.Handle("/apps", jwtMiddleware.Handler(AppsHandler)).Methods("GET")
+	r.Handle("/slideshows", jwtMiddleware.Handler(SlideshowsHandler)).Methods("GET")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
@@ -85,8 +85,8 @@ func main() {
 	http.ListenAndServe(":8080", corsWrapper.Handler(r))
 }
 
-var AppsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	payload, _ := json.Marshal(apps)
+var SlideshowsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	payload, _ := json.Marshal(slideshows)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(payload))
