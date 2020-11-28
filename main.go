@@ -38,7 +38,7 @@ type Slideshow struct {
 }
 
 var slideshows = []Slideshow{
-	Slideshow{Id: "main", Name: "Overview", Description: "Brief overview"},
+	Slideshow{Id: "default", Name: "Overview", Description: "Brief overview"},
 	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use"},
 	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow"},
 }
