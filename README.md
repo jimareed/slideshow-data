@@ -31,6 +31,12 @@ docker rm slideshow-data
 docker rmi slideshow-image
 ```
 
+### Docker compose
+```
+docker-compose up -d
+docker-compose down
+```
+
 ### Run public image
 ```
 docker run -p 8080:8080 -d --name slideshow-data jimareed/slideshow-data
