@@ -1,21 +1,39 @@
 # slideshow-data
 backend data for slideshow editor
 
-* In a separate terminal tab, grab the dependencies
+## Setup
 
-```bash
+### Build & Run
+
+Grab the dependencies
+```
 go get
 ```
 
-
-* Set environment variables
+Set environment variables
 ```
 export SLIDESHOW_API_ID=--your Auth0 API Identifier--
 export SLIDESHOW_DOMAIN=--your Auth0 domain--
 ```
 
-* Build and run your Go application:
-
-```bash
+Build and run
+```
 go run .
+```
+
+### Local docker build
+```
+docker build --tag slideshow-data-image .
+docker run --name slideshow-data -p 8080:8080 -d slideshow-data-image -e SLIDESHOW_API_ID='--your Auth0 API Identifier--' -e SLIDESHOW_DOMAIN='--your Auth0 domain--'
+
+docker stop slideshow-data
+docker rm slideshow-data
+docker rmi slideshow-image
+```
+
+### Run public image
+```
+docker run -p 8080:8080 -d --name slideshow-data jimareed/slideshow-data
+
+docker rm -f slideshow-data
 ```
