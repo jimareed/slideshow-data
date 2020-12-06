@@ -1,6 +1,6 @@
 version: "3.3"
 services:
-  webhook:
+  slideshow-data:
     image: slideshow-data-image
     container_name: slideshow-data
     ports:
@@ -8,8 +8,8 @@ services:
     networks:
       - default
     environment:
-      - SLIDESHOW_API_ID=--your Auth0 API Identifier--
-      - SLIDESHOW_DOMAIN=--your Auth0 domain--
+      - SLIDESHOW_API_ID=5fba785ea8f53c003e03bb2e
+      - SLIDESHOW_DOMAIN=dev-wy5twb8c.us.auth0.com
       
 networks:
     default:

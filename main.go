@@ -35,12 +35,13 @@ type Slideshow struct {
 	Id          string
 	Name        string
 	Description string
+	Privileges  []string
 }
 
 var slideshows = []Slideshow{
-	Slideshow{Id: "default", Name: "Overview", Description: "Brief overview"},
-	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use"},
-	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow"},
+	Slideshow{Id: "default", Name: "Slideshow", Description: "Overview", Privileges: []string{"duplicate:slideshow"}},
+	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use", Privileges: []string{"duplicate:slideshow"}},
+	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow", Privileges: []string{"duplicate:slideshow"}},
 }
 
 func main() {
