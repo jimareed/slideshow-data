@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -42,6 +43,32 @@ var slideshows = []Slideshow{
 	Slideshow{Id: "default", Name: "Slideshow", Description: "Overview", Privileges: []string{"duplicate:slideshow"}},
 	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use", Privileges: []string{"duplicate:slideshow"}},
 	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow", Privileges: []string{"duplicate:slideshow"}},
+}
+
+var NULL_SLIDESHOW = Slideshow{"", "", "", []string{""}}
+
+func Get(id string) (Slideshow, error) {
+
+	for _, s := range slideshows {
+		if s.Id == id {
+			return s, nil
+		}
+	}
+
+	return NULL_SLIDESHOW, fmt.Errorf("Get error: invalid id %s", id)
+}
+
+func Duplicate(id string) (Slideshow, error) {
+
+	for _, s := range slideshows {
+		if s.Id == id {
+			s1 := Slideshow{Id: "2345", Name: "copy of " + s.Name, Description: s.Description, Privileges: []string{"duplicate:slideshow"}}
+			slideshows = append(slideshows, s1)
+			return s1, nil
+		}
+	}
+
+	return NULL_SLIDESHOW, fmt.Errorf("Duplicate error: invalid id %s", id)
 }
 
 func main() {
