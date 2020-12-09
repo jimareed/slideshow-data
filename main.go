@@ -60,6 +60,8 @@ func Get(id string) (Slideshow, error) {
 
 func Duplicate(id string) (Slideshow, error) {
 
+	fmt.Printf("duplicate\n")
+
 	for _, s := range slideshows {
 		if s.Id == id {
 			s1 := Slideshow{Id: "2345", Name: "copy of " + s.Name, Description: s.Description, Privileges: []string{"duplicate:slideshow"}}
@@ -103,12 +105,15 @@ func main() {
 	r := mux.NewRouter()
 
 	r.Handle("/slideshows", jwtMiddleware.Handler(SlideshowsHandler)).Methods("GET")
+	r.Handle("/slideshows", jwtMiddleware.Handler(DuplicateSlideshowHandler)).Methods("POST")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
 		AllowedMethods: []string{"GET", "POST"},
 		AllowedHeaders: []string{"Content-Type", "Origin", "Accept", "*"},
 	})
+
+	fmt.Printf("server started\n")
 
 	http.ListenAndServe(":8080", corsWrapper.Handler(r))
 }
@@ -118,6 +123,19 @@ var SlideshowsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(payload))
+})
+
+var DuplicateSlideshowHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	s, err := Duplicate("default")
+
+	w.Header().Set("Content-Type", "application/json")
+	if err == nil {
+		payload, _ := json.Marshal(s)
+		w.Write([]byte(payload))
+	} else {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	}
 })
 
 func getPemCert(token *jwt.Token) (string, error) {
