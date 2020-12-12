@@ -12,8 +12,8 @@ go get
 
 Set environment variables
 ```
-export SLIDESHOW_API_ID=--your Auth0 API Identifier--
-export SLIDESHOW_DOMAIN=--your Auth0 domain--
+export DATA_API_ID=--your Auth0 API Identifier--
+export DATA_DOMAIN=--your Auth0 domain--
 ```
 
 Build and run

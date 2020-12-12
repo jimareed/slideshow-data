@@ -31,46 +31,44 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
-/* Slideshow type */
-type Slideshow struct {
+/* Data type */
+type Data struct {
 	Id          string
 	Name        string
 	Description string
 	Privileges  []string
 }
 
-var slideshows = []Slideshow{
-	Slideshow{Id: "default", Name: "Slideshow", Description: "Overview", Privileges: []string{"duplicate:slideshow"}},
-	Slideshow{Id: "instructions", Name: "Instructions", Description: "Steps to use", Privileges: []string{"duplicate:slideshow"}},
-	Slideshow{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow", Privileges: []string{"duplicate:slideshow"}},
+var data = []Data{
+	Data{Id: "default", Name: "Slideshow", Description: "Overview", Privileges: []string{"duplicate:slideshow"}},
+	Data{Id: "instructions", Name: "Instructions", Description: "Steps to use", Privileges: []string{"duplicate:slideshow"}},
+	Data{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow", Privileges: []string{"duplicate:slideshow"}},
 }
 
-var NULL_SLIDESHOW = Slideshow{"", "", "", []string{""}}
+var NULL_DATA = Data{"", "", "", []string{""}}
 
-func Get(id string) (Slideshow, error) {
+func Get(id string) (Data, error) {
 
-	for _, s := range slideshows {
+	for _, s := range data {
 		if s.Id == id {
 			return s, nil
 		}
 	}
 
-	return NULL_SLIDESHOW, fmt.Errorf("Get error: invalid id %s", id)
+	return NULL_DATA, fmt.Errorf("Get error: invalid id %s", id)
 }
 
-func Duplicate(id string) (Slideshow, error) {
+func Duplicate(id string) (Data, error) {
 
-	fmt.Printf("duplicate\n")
-
-	for _, s := range slideshows {
+	for _, s := range data {
 		if s.Id == id {
-			s1 := Slideshow{Id: "2345", Name: "copy of " + s.Name, Description: s.Description, Privileges: []string{"duplicate:slideshow"}}
-			slideshows = append(slideshows, s1)
+			s1 := Data{Id: "2345", Name: "copy of " + s.Name, Description: s.Description, Privileges: []string{"duplicate:slideshow"}}
+			data = append(data, s1)
 			return s1, nil
 		}
 	}
 
-	return NULL_SLIDESHOW, fmt.Errorf("Duplicate error: invalid id %s", id)
+	return NULL_DATA, fmt.Errorf("Duplicate error: invalid id %s", id)
 }
 
 func main() {
@@ -78,8 +76,8 @@ func main() {
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			// Verify 'aud' claim
-			aud := os.Getenv("SLIDESHOW_API_ID")
-			domain := os.Getenv("SLIDESHOW_DOMAIN")
+			aud := os.Getenv("DATA_API_ID")
+			domain := os.Getenv("DATA_DOMAIN")
 			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 			if !checkAud {
 				return token, errors.New("Invalid audience.")
@@ -104,8 +102,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.Handle("/slideshows", jwtMiddleware.Handler(SlideshowsHandler)).Methods("GET")
-	r.Handle("/slideshows", jwtMiddleware.Handler(DuplicateSlideshowHandler)).Methods("POST")
+	r.Handle("/data", jwtMiddleware.Handler(DataHandler)).Methods("GET")
+	r.Handle("/data", jwtMiddleware.Handler(DuplicateDataHandler)).Methods("POST")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
@@ -118,14 +116,14 @@ func main() {
 	http.ListenAndServe(":8080", corsWrapper.Handler(r))
 }
 
-var SlideshowsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	payload, _ := json.Marshal(slideshows)
+var DataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	payload, _ := json.Marshal(data)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(payload))
 })
 
-var DuplicateSlideshowHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+var DuplicateDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	s, err := Duplicate("default")
 
@@ -141,7 +139,7 @@ var DuplicateSlideshowHandler = http.HandlerFunc(func(w http.ResponseWriter, r *
 func getPemCert(token *jwt.Token) (string, error) {
 
 	cert := ""
-	domain := os.Getenv("SLIDESHOW_DOMAIN")
+	domain := os.Getenv("DATA_DOMAIN")
 	resp, err := http.Get("https://" + domain + "/.well-known/jwks.json")
 
 	if err != nil {
