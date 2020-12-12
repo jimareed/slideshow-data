@@ -33,42 +33,42 @@ type JSONWebKeys struct {
 
 /* Data type */
 type Data struct {
-	Id          string
+	Id          int
+	ResourceId  string
 	Name        string
 	Description string
-	Privileges  []string
 }
 
 var data = []Data{
-	Data{Id: "default", Name: "Slideshow", Description: "Overview", Privileges: []string{"duplicate:slideshow"}},
-	Data{Id: "instructions", Name: "Instructions", Description: "Steps to use", Privileges: []string{"duplicate:slideshow"}},
-	Data{Id: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow", Privileges: []string{"duplicate:slideshow"}},
+	Data{Id: 1, ResourceId: "default", Name: "Slideshow", Description: "Overview"},
+	Data{Id: 2, ResourceId: "instructions", Name: "Instructions", Description: "Steps to use"},
+	Data{Id: 3, ResourceId: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow"},
 }
 
-var NULL_DATA = Data{"", "", "", []string{""}}
+var NULL_DATA = Data{0, "", "", ""}
 
-func Get(id string) (Data, error) {
+func Get(resourceId string) (Data, error) {
 
 	for _, s := range data {
-		if s.Id == id {
+		if s.ResourceId == resourceId {
 			return s, nil
 		}
 	}
 
-	return NULL_DATA, fmt.Errorf("Get error: invalid id %s", id)
+	return NULL_DATA, fmt.Errorf("Get error: invalid id %s", resourceId)
 }
 
-func Duplicate(id string) (Data, error) {
+func Duplicate(resourceId string) (Data, error) {
 
 	for _, s := range data {
-		if s.Id == id {
-			s1 := Data{Id: "2345", Name: "copy of " + s.Name, Description: s.Description, Privileges: []string{"duplicate:slideshow"}}
+		if s.ResourceId == resourceId {
+			s1 := Data{Id: len(data), ResourceId: "2345", Name: "copy of " + s.Name, Description: s.Description}
 			data = append(data, s1)
 			return s1, nil
 		}
 	}
 
-	return NULL_DATA, fmt.Errorf("Duplicate error: invalid id %s", id)
+	return NULL_DATA, fmt.Errorf("Duplicate error: invalid id %s", resourceId)
 }
 
 func main() {
