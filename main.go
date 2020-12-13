@@ -62,7 +62,7 @@ func Duplicate(resourceId string) (Data, error) {
 
 	for _, s := range data {
 		if s.ResourceId == resourceId {
-			s1 := Data{Id: len(data), ResourceId: "2345", Name: "copy of " + s.Name, Description: s.Description}
+			s1 := Data{Id: len(data) + 1, ResourceId: "2345", Name: "copy of " + s.Name, Description: s.Description}
 			data = append(data, s1)
 			return s1, nil
 		}
