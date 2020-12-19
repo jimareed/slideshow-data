@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
@@ -31,44 +33,11 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
-/* Data type */
-type Data struct {
-	Id          int
-	ResourceId  string
-	Name        string
-	Description string
-}
-
-var data = []Data{
-	Data{Id: 1, ResourceId: "default", Name: "Slideshow", Description: "Overview"},
-	Data{Id: 2, ResourceId: "instructions", Name: "Instructions", Description: "Steps to use"},
-	Data{Id: 3, ResourceId: "emotional-intelligence", Name: "Emotional Intelligence", Description: "Sample slideshow"},
-}
-
-var NULL_DATA = Data{0, "", "", ""}
-
-func Get(resourceId string) (Data, error) {
-
-	for _, s := range data {
-		if s.ResourceId == resourceId {
-			return s, nil
-		}
-	}
-
-	return NULL_DATA, fmt.Errorf("Get error: invalid id %s", resourceId)
-}
-
-func Duplicate(resourceId string) (Data, error) {
-
-	for _, s := range data {
-		if s.ResourceId == resourceId {
-			s1 := Data{Id: len(data) + 1, ResourceId: "2345", Name: "copy of " + s.Name, Description: s.Description}
-			data = append(data, s1)
-			return s1, nil
-		}
-	}
-
-	return NULL_DATA, fmt.Errorf("Duplicate error: invalid id %s", resourceId)
+/* user info */
+type UserInfo struct {
+	Sub   string `json:"sub"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 func main() {
@@ -104,10 +73,11 @@ func main() {
 
 	r.Handle("/data", jwtMiddleware.Handler(DataHandler)).Methods("GET")
 	r.Handle("/data", jwtMiddleware.Handler(DuplicateDataHandler)).Methods("POST")
+	r.Handle("/data/{id}", jwtMiddleware.Handler(PutDataHandler)).Methods("PUT")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
-		AllowedMethods: []string{"GET", "POST"},
+		AllowedMethods: []string{"GET", "POST", "PUT"},
 		AllowedHeaders: []string{"Content-Type", "Origin", "Accept", "*"},
 	})
 
@@ -117,7 +87,30 @@ func main() {
 }
 
 var DataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	payload, _ := json.Marshal(data)
+
+	userId := ""
+	filteredData := readData(userId)
+
+	payload, _ := json.Marshal(filteredData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(payload))
+})
+
+var PutDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+	token := authHeaderParts[1]
+
+	userId, _ := getUserEmail(token)
+
+	log.Printf("put user=%s id=%s", userId, id)
+
+	filteredData := readData(userId)
+
+	payload, _ := json.Marshal(filteredData)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(payload))
@@ -125,7 +118,10 @@ var DataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 
 var DuplicateDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	s, err := Duplicate("default")
+	userId := ""
+	resourceId := "default"
+
+	s, err := duplicateData(userId, resourceId)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err == nil {
@@ -166,4 +162,30 @@ func getPemCert(token *jwt.Token) (string, error) {
 	}
 
 	return cert, nil
+}
+
+func getUserEmail(token string) (string, error) {
+
+	var userInfo UserInfo
+
+	domain := os.Getenv("DATA_DOMAIN")
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", "https://"+domain+"/userinfo", nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&userInfo)
+	if err != nil {
+		return "", err
+	}
+
+	return userInfo.Email, nil
 }
