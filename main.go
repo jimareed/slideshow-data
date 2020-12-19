@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/auth0/go-jwt-middleware"
@@ -74,10 +75,11 @@ func main() {
 	r.Handle("/data", jwtMiddleware.Handler(DataHandler)).Methods("GET")
 	r.Handle("/data", jwtMiddleware.Handler(DuplicateDataHandler)).Methods("POST")
 	r.Handle("/data/{id}", jwtMiddleware.Handler(PutDataHandler)).Methods("PUT")
+	r.Handle("/data/{id}", jwtMiddleware.Handler(DeleteDataHandler)).Methods("DELETE")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
-		AllowedMethods: []string{"GET", "POST", "PUT"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders: []string{"Content-Type", "Origin", "Accept", "*"},
 	})
 
@@ -107,6 +109,27 @@ var PutDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	userId, _ := getUserEmail(token)
 
 	log.Printf("put user=%s id=%s", userId, id)
+
+	filteredData := readData(userId)
+
+	payload, _ := json.Marshal(filteredData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(payload))
+})
+
+var DeleteDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+	token := authHeaderParts[1]
+
+	userId, _ := getUserEmail(token)
+
+	i, _ := strconv.Atoi(id)
+
+	_ = deleteData(userId, i)
 
 	filteredData := readData(userId)
 

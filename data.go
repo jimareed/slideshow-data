@@ -27,7 +27,9 @@ func readData(userId string) []Data {
 	filteredData := []Data{}
 
 	for _, d := range data {
-		d.Permissions = "read write"
+		if d.Id > 3 {
+			d.Permissions = "read write"
+		}
 
 		filteredData = append(filteredData, d)
 	}
@@ -45,6 +47,21 @@ func updateData(userId string, name string, description string) error {
 			return nil
 		}
 		index++
+	}
+
+	return errors.New("data not found")
+}
+
+func deleteData(userId string, id int) error {
+
+	for i, d := range data {
+		if d.Id == id {
+			if i != len(data)-1 {
+				data[i] = data[len(data)-1]
+			}
+			data = data[:len(data)-1]
+			return nil
+		}
 	}
 
 	return errors.New("data not found")

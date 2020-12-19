@@ -22,13 +22,55 @@ func TestReadData(t *testing.T) {
 
 func TestDuplicateData(t *testing.T) {
 
-	t.Log("A user:")
+	t.Log("Alice:")
 
-	_, err := duplicateData("", "default")
+	d, err := duplicateData("alice@example.com", "default")
 	if err == nil {
 		t.Log("Should be able to duplicate the default Slideshow.", checkMark)
 	} else {
 		t.Fatal("Should be able to duplicate the default Slideshow.", xMark, err)
+	}
+
+	_ = deleteData("alice@example.com", d.Id)
+
+}
+
+func TestDeleteData(t *testing.T) {
+
+	t.Log("Alice:")
+
+	userId := "alice@example.com"
+
+	d, err := duplicateData(userId, "default")
+	if err != nil {
+		t.Fatal("Should be able to duplicate the default Slideshow.", xMark, err)
+	}
+	_, err = duplicateData(userId, "default")
+	if err != nil {
+		t.Fatal("Should be able to duplicate the default Slideshow.", xMark, err)
+	}
+
+	data := readData(userId)
+
+	if len(data) == 5 {
+		t.Log("Should have access to five data items.", checkMark)
+	} else {
+		t.Fatal("Should have access to five data items.", xMark, len(data))
+	}
+
+	err = deleteData(userId, d.Id)
+	if err == nil {
+		t.Log("Should be able to delete a data item.", checkMark)
+	} else {
+		t.Fatal("Should be able to delete a data item.", xMark)
+	}
+
+	data = readData(userId)
+
+	for _, d2 := range data {
+		if d2.Id == d.Id {
+			t.Fatal("Should not find deleted id in list of data items.", xMark)
+		}
 	}
 }
 
