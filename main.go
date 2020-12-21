@@ -15,6 +15,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+
+	"github.com/jimareed/slideshow-data/data"
 )
 
 type Response struct {
@@ -40,6 +42,15 @@ type UserInfo struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
+
+type UserCache struct {
+	Email string
+	Token string
+}
+
+var d = data.Data{}
+
+var usersCache = []UserCache{}
 
 func main() {
 
@@ -70,11 +81,13 @@ func main() {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
+	d = data.Init("model.conf", "policy.csv")
+
 	r := mux.NewRouter()
 
-	r.Handle("/data", jwtMiddleware.Handler(DataHandler)).Methods("GET")
-	r.Handle("/data", jwtMiddleware.Handler(DuplicateDataHandler)).Methods("POST")
-	r.Handle("/data/{id}", jwtMiddleware.Handler(PutDataHandler)).Methods("PUT")
+	r.Handle("/data", jwtMiddleware.Handler(GetDataHandler)).Methods("GET")
+	r.Handle("/data", jwtMiddleware.Handler(NewDataHandler)).Methods("POST")
+	r.Handle("/data/{id}", jwtMiddleware.Handler(UpdateDataHandler)).Methods("PUT")
 	r.Handle("/data/{id}", jwtMiddleware.Handler(DeleteDataHandler)).Methods("DELETE")
 
 	// For dev only - Set up CORS so React client can consume our API
@@ -88,10 +101,20 @@ func main() {
 	http.ListenAndServe(":8080", corsWrapper.Handler(r))
 }
 
-var DataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+var GetDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	userId := ""
-	filteredData := readData(userId)
+	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+	token := authHeaderParts[1]
+
+	userId, err := getUserEmail(token)
+
+	if err != nil {
+		log.Printf("error: %v\n", err)
+	}
+
+	log.Printf("get data for user %s", userId)
+
+	filteredData := d.ReadData(userId)
 
 	payload, _ := json.Marshal(filteredData)
 
@@ -99,7 +122,7 @@ var DataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 	w.Write([]byte(payload))
 })
 
-var PutDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+var UpdateDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -108,9 +131,9 @@ var PutDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	userId, _ := getUserEmail(token)
 
-	log.Printf("put user=%s id=%s", userId, id)
+	log.Printf("put user=%s, id=%s", userId, id)
 
-	filteredData := readData(userId)
+	filteredData := d.ReadData(userId)
 
 	payload, _ := json.Marshal(filteredData)
 
@@ -129,9 +152,9 @@ var DeleteDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	i, _ := strconv.Atoi(id)
 
-	_ = deleteData(userId, i)
+	_ = d.DeleteData(userId, i)
 
-	filteredData := readData(userId)
+	filteredData := d.ReadData(userId)
 
 	payload, _ := json.Marshal(filteredData)
 
@@ -139,12 +162,14 @@ var DeleteDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 	w.Write([]byte(payload))
 })
 
-var DuplicateDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+var NewDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	userId := ""
-	resourceId := "default"
+	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+	token := authHeaderParts[1]
 
-	s, err := duplicateData(userId, resourceId)
+	userId, _ := getUserEmail(token)
+
+	s, err := d.NewData(userId)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err == nil {
@@ -191,6 +216,12 @@ func getUserEmail(token string) (string, error) {
 
 	var userInfo UserInfo
 
+	userEmail := lookupUser(token)
+
+	if userEmail != "" {
+		return userEmail, nil
+	}
+
 	domain := os.Getenv("DATA_DOMAIN")
 
 	client := &http.Client{}
@@ -210,5 +241,21 @@ func getUserEmail(token string) (string, error) {
 		return "", err
 	}
 
+	newUser := UserCache{}
+	newUser.Email = userInfo.Email
+	newUser.Token = token
+
+	usersCache = append(usersCache, newUser)
+
 	return userInfo.Email, nil
+}
+
+func lookupUser(token string) string {
+	for _, u := range usersCache {
+		if u.Token == token {
+			return u.Email
+		}
+	}
+
+	return ""
 }
