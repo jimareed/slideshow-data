@@ -101,7 +101,7 @@ func (data Data) NewData(userId string) (DataItem, error) {
 	return newData, nil
 }
 
-func (data Data) UpdateData(userId string, id int, description string) error {
+func (data Data) UpdateData(userId string, id int, name string, description string) error {
 	index := 0
 
 	sid := fmt.Sprintf("%d", id)
@@ -114,6 +114,7 @@ func (data Data) UpdateData(userId string, id int, description string) error {
 		}
 		if result {
 			if id == d.Id {
+				dataItems[index].Name = name
 				dataItems[index].Description = description
 				return nil
 			}

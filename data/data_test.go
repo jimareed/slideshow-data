@@ -70,7 +70,7 @@ func TestUpdateData(t *testing.T) {
 		}
 	}
 
-	err = data.UpdateData(alice, d1.Id, "Updated Description")
+	err = data.UpdateData(alice, d1.Id, "Updated Name", "Updated Description")
 
 	if err == nil {
 		t.Log("Should be able to update the description for a new data item. ", checkMark)

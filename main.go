@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -46,6 +47,11 @@ type UserInfo struct {
 type UserCache struct {
 	Email string
 	Token string
+}
+
+type UpdateData struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 var d = data.Data{}
@@ -131,7 +137,14 @@ var UpdateDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	userId, _ := getUserEmail(token)
 
-	log.Printf("put user=%s, id=%s", userId, id)
+	i, _ := strconv.Atoi(id)
+
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var updateData UpdateData
+
+	json.Unmarshal(reqBody, &updateData)
+
+	d.UpdateData(userId, i, updateData.Name, updateData.Description)
 
 	filteredData := d.ReadData(userId)
 
