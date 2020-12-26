@@ -80,13 +80,14 @@ func (data Data) ReadData(userEmail string) []DataItem {
 	return filteredData
 }
 
-func (data Data) NewData(userId string) (DataItem, error) {
+func (data Data) NewData(userId string, resourceId string) (DataItem, error) {
 
 	newData := DataItem{}
 
 	newData.Id = nextId
 	newData.Name = fmt.Sprintf("New Slideshow")
 	newData.Description = fmt.Sprintf("New Slideshow")
+	newData.ResourceId = resourceId
 	id := fmt.Sprintf("%d", newData.Id)
 
 	_, err := data.enforcer.AddPolicy(userId, id, "write:data")

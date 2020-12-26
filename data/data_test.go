@@ -31,7 +31,7 @@ func TestNewData(t *testing.T) {
 
 	data := Init("../model.conf", "../policy.csv")
 
-	d, err := data.NewData(alice)
+	d, err := data.NewData(alice, "1")
 
 	if err == nil {
 		t.Log("Should be able to create a new data item.", checkMark)
@@ -56,7 +56,7 @@ func TestUpdateData(t *testing.T) {
 
 	data := Init("../model.conf", "../policy.csv")
 
-	d1, err := data.NewData(alice)
+	d1, err := data.NewData(alice, "1")
 
 	dataItems := data.ReadData(alice)
 
@@ -135,11 +135,11 @@ func TestDeleteData(t *testing.T) {
 
 	data := Init("../model.conf", "../policy.csv")
 
-	d1, err := data.NewData(alice)
+	d1, err := data.NewData(alice, "1")
 	if err != nil {
 		t.Fatal("Should be able add new data.", xMark, err)
 	}
-	d2, err := data.NewData(alice)
+	d2, err := data.NewData(alice, "1")
 	if err != nil {
 		t.Fatal("Should be able to add new data.", xMark, err)
 	}

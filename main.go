@@ -52,6 +52,7 @@ type UserCache struct {
 type UpdateData struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	ResourceId  string `json:"resourceId"`
 }
 
 var d = data.Data{}
@@ -118,8 +119,6 @@ var GetDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		log.Printf("error: %v\n", err)
 	}
 
-	log.Printf("get data for user %s", userId)
-
 	filteredData := d.ReadData(userId)
 
 	payload, _ := json.Marshal(filteredData)
@@ -182,7 +181,12 @@ var NewDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 	userId, _ := getUserEmail(token)
 
-	s, err := d.NewData(userId)
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var updateData UpdateData
+
+	json.Unmarshal(reqBody, &updateData)
+
+	s, err := d.NewData(userId, updateData.ResourceId)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err == nil {
