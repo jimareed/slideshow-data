@@ -1,15 +1,15 @@
 version: "3.3"
 services:
   slideshow-data:
-    image: slideshow-data-image
+    image: jimareed/slideshow-data-image
     container_name: slideshow-data
     ports:
       - "8080:8080"
     networks:
       - default
     environment:
-      - SLIDESHOW_API_ID=5fba785ea8f53c003e03bb2e
-      - SLIDESHOW_DOMAIN=dev-wy5twb8c.us.auth0.com
+      - SLIDESHOW_API_ID=-- insert here --
+      - SLIDESHOW_DOMAIN=-- insert here --
       
 networks:
     default:
