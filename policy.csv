@@ -1,11 +1,6 @@
-p, alice@example.com, 1, read:data
-p, alice@example.com, 2, read:data
-p, alice@example.com, 3, read:data
-p, bob@example.com, 1, read:data
-p, bob@example.com, 2, read:data
-p, bob@example.com, 3, read:data
-p, data_group_admin, data_group, write:data
+p, all_users, 1, read:data
+p, all_users, 2, read:data
+p, all_users, 3, read:data
 
-g, alice@example.com, data_group_admin
-g2, data1, data_group
-g2, data2, data_group
+g, alice@example.com, all_users
+g, bob@example.com, all_users
