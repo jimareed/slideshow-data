@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   slideshow-data:
-    image: jimareed/slideshow-data-image
+    image: jimareed/slideshow-data:latest
     container_name: slideshow-data
     ports:
       - "8080:8080"
