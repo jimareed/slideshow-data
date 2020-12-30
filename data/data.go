@@ -48,6 +48,10 @@ func (data Data) ReadData(userEmail string) []DataItem {
 
 	filteredData := []DataItem{}
 
+	if !data.enforcer.HasNamedGroupingPolicy("g", userEmail, "all_users") {
+		data.enforcer.AddNamedGroupingPolicy("g", userEmail, "all_users")
+	}
+
 	for _, d := range dataItems {
 		id := fmt.Sprintf("%d", d.Id)
 
