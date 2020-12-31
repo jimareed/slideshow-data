@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,8 +15,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-
-	"github.com/jimareed/slideshow-data/data"
 )
 
 type Response struct {
@@ -55,7 +52,7 @@ type UpdateData struct {
 	ResourceId  string `json:"resourceId"`
 }
 
-var d = data.Data{}
+var d = Data{}
 
 var usersCache = []UserCache{}
 
@@ -88,7 +85,7 @@ func main() {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	d = data.Init("model.conf", "policy.csv")
+	d = Init("model.conf", "policy.csv")
 
 	r := mux.NewRouter()
 
@@ -116,7 +113,7 @@ var GetDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	userId, err := getUserEmail(token)
 
 	if err != nil {
-		log.Printf("error: %v\n", err)
+		fmt.Printf("error: %v\n", err)
 	}
 
 	filteredData := d.ReadData(userId)

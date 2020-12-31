@@ -21,18 +21,9 @@ Build and run
 go run .
 ```
 
-### Local docker build
-```
-docker build --tag slideshow-data-image .
-docker run --name slideshow-data -p 8080:8080 -d slideshow-data-image -e SLIDESHOW_API_ID='--your Auth0 API Identifier--' -e SLIDESHOW_DOMAIN='--your Auth0 domain--'
-
-docker stop slideshow-data
-docker rm slideshow-data
-docker rmi slideshow-image
-```
-
 ### Docker compose
 ```
+docker build --tag slideshow-data-image .
 docker-compose up -d
 docker-compose down
 ```
