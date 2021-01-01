@@ -4,8 +4,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"flag"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/jimareed/slideshow-data/data"
 	"github.com/rs/cors"
 )
 
@@ -52,11 +54,27 @@ type UpdateData struct {
 	ResourceId  string `json:"resourceId"`
 }
 
-var d = Data{}
-
+var d = data.Data{}
 var usersCache = []UserCache{}
 
 func main() {
+
+	var filePath = "."
+
+	input := flag.String("input", "", "path to source")
+	help := flag.Bool("help", false, "help")
+
+	flag.Parse()
+
+	if *help {
+		log.Fatal("usage: slideshow-data [-input <path>][-help]")
+	}
+
+	if *input != "" {
+		filePath = *input
+	}
+
+	log.Print("reading model and policy from ", filePath)
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
@@ -85,7 +103,7 @@ func main() {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	d = Init("model.conf", "policy.csv")
+	d = data.Init(filePath+"/model.conf", filePath+"/policy.csv")
 
 	r := mux.NewRouter()
 
@@ -100,9 +118,9 @@ func main() {
 		AllowedHeaders: []string{"Content-Type", "Origin", "Accept", "*"},
 	})
 
-	fmt.Printf("server started\n")
+	log.Printf("server started\n")
 
-	http.ListenAndServe(":8080", corsWrapper.Handler(r))
+	log.Fatal(http.ListenAndServe(":8080", corsWrapper.Handler(r)))
 }
 
 var GetDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +131,7 @@ var GetDataHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	userId, err := getUserEmail(token)
 
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		log.Printf("error: %v\n", err)
 	}
 
 	filteredData := d.ReadData(userId)
@@ -201,6 +219,7 @@ func getPemCert(token *jwt.Token) (string, error) {
 	resp, err := http.Get("https://" + domain + "/.well-known/jwks.json")
 
 	if err != nil {
+		log.Printf("error: %v\n", err)
 		return cert, err
 	}
 	defer resp.Body.Close()
@@ -245,6 +264,7 @@ func getUserEmail(token string) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("error: %v\n", err)
 		return "", err
 	}
 
@@ -252,6 +272,7 @@ func getUserEmail(token string) (string, error) {
 
 	err = json.NewDecoder(resp.Body).Decode(&userInfo)
 	if err != nil {
+		log.Printf("error: %v\n", err)
 		return "", err
 	}
 
