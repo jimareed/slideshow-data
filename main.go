@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/jimareed/slideshow-data/data"
@@ -76,41 +75,14 @@ func main() {
 
 	log.Print("reading model and policy from ", filePath)
 
-	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
-		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			// Verify 'aud' claim
-			aud := os.Getenv("DATA_API_ID")
-			domain := os.Getenv("DATA_DOMAIN")
-			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-			if !checkAud {
-				return token, errors.New("Invalid audience.")
-			}
-			// Verify 'iss' claim
-			iss := "https://" + domain + "/"
-			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-			if !checkIss {
-				return token, errors.New("Invalid issuer.")
-			}
-
-			cert, err := getPemCert(token)
-			if err != nil {
-				panic(err.Error())
-			}
-
-			result, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
-			return result, nil
-		},
-		SigningMethod: jwt.SigningMethodRS256,
-	})
-
 	d = data.Init(filePath+"/model.conf", filePath+"/policy.csv")
 
 	r := mux.NewRouter()
 
-	r.Handle("/data", jwtMiddleware.Handler(GetDataHandler)).Methods("GET")
-	r.Handle("/data", jwtMiddleware.Handler(NewDataHandler)).Methods("POST")
-	r.Handle("/data/{id}", jwtMiddleware.Handler(UpdateDataHandler)).Methods("PUT")
-	r.Handle("/data/{id}", jwtMiddleware.Handler(DeleteDataHandler)).Methods("DELETE")
+	r.Handle("/data", GetDataHandler).Methods("GET")
+	r.Handle("/data", NewDataHandler).Methods("POST")
+	r.Handle("/data/{id}", UpdateDataHandler).Methods("PUT")
+	r.Handle("/data/{id}", DeleteDataHandler).Methods("DELETE")
 
 	// For dev only - Set up CORS so React client can consume our API
 	corsWrapper := cors.New(cors.Options{
